@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="@color/colorWhite"
+    tools:context=".TaskDetailsActivity">
+
+    <TextView
+        android:id="@+id/titleTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Task Title"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:textColor="@color/colorPrimary"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/descriptionTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="• Task Description"
+        android:textSize="18sp"
+        android:layout_marginTop="24dp"
+        app:layout_constraintTop_toBottomOf="@id/titleTextView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/deadlineTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="• Deadline: 2024-12-31"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/descriptionTextView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp" />
+
+    <TextView
+        android:id="@+id/reminderTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="• Reminder: 5 minutes"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/deadlineTextView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp" />
+
+    <Button
+        android:id="@+id/completeButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Marquer comme Terminée"
+        app:layout_constraintTop_toBottomOf="@id/reminderTextView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="24dp"
+        android:backgroundTint="@color/colorAccent" />
+
+    <Button
+        android:id="@+id/setReminderButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Définir un rappel"
+        app:layout_constraintTop_toBottomOf="@id/completeButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp" />
+
+    <Button
+        android:id="@+id/shareButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Partager"
+        app:layout_constraintTop_toBottomOf="@id/setReminderButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp" />
+
+    <Button
+        android:id="@+id/editButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Modifier"
+        app:layout_constraintTop_toBottomOf="@id/shareButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/deleteButton"
+        app:layout_constraintWidth_percent="0.45"
+        android:layout_marginTop="32dp" />
+
+    <Button
+        android:id="@+id/deleteButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Supprimer"
+        app:layout_constraintTop_toBottomOf="@id/shareButton"
+        app:layout_constraintStart_toEndOf="@id/editButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintWidth_percent="0.45"
+        android:layout_marginTop="32dp"
+        android:backgroundTint="#ff0000" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

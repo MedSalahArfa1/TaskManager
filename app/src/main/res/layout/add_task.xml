@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorWhite">
+
+    <!-- Title Field -->
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/edit_titre"
+        android:paddingStart="7dp"
+        android:paddingEnd="7dp"
+        android:hint="Titre" />
+
+    <!-- Description Field -->
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/edit_description"
+        android:paddingStart="7dp"
+        android:paddingEnd="7dp"
+        android:hint="Description"
+        android:layout_below="@id/edit_titre"
+        android:layout_marginTop="10dp" />
+
+    <EditText
+        android:id="@+id/edit_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Select Date"
+        android:focusable="false"
+        android:clickable="true"
+        android:paddingStart="7dp"
+        android:paddingEnd="7dp"
+        android:layout_below="@id/edit_description"
+        android:layout_marginTop="10dp" />
+
+    <!-- Save Button -->
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="45dp"
+        android:layout_below="@id/edit_date"
+        android:text="Enregistrer"
+        android:layout_alignParentEnd="true"
+        android:id="@+id/button_save"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/colorPrimary"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="5dp" />
+
+</RelativeLayout>
