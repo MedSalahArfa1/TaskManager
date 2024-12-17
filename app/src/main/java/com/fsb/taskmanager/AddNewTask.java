@@ -178,6 +178,9 @@ public class AddNewTask extends BottomSheetDialogFragment {
                 item.setStatut(0); // Default Status
                 myDb.insertTask(item);
             }
+
+            // Notify the listener about the task update
+            onTaskUpdated();
             dismiss();
         });
     }

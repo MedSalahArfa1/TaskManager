@@ -4,6 +4,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -45,9 +46,8 @@ public class MainActivity extends AppCompatActivity implements OnDialogCloseList
 
         // RecyclerView Setup
         mRecyclerview.setHasFixedSize(true);
-        mRecyclerview.setLayoutManager(new LinearLayoutManager(this)); // Sets a LinearLayoutManager to arrange the list
-        // items vertically
-        mRecyclerview.setAdapter(adapter); // Sets the adapter to manage the data in the RecyclerView
+        mRecyclerview.setLayoutManager(new LinearLayoutManager(this));
+        mRecyclerview.setAdapter(adapter);
 
         // Fetch Tasks
         tasksList = myDB.getAllTasks();
@@ -65,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements OnDialogCloseList
         searchView = findViewById(R.id.searchView);
         setupSearchView();
     }
+
 
     private void setupSearchView() {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -91,20 +92,22 @@ public class MainActivity extends AppCompatActivity implements OnDialogCloseList
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1 && resultCode == RESULT_OK) {
-            // Task was deleted, refresh the RecyclerView to remove it
-            refreshTaskList();
-        }
+    protected void onResume() {
+        super.onResume();
+
+        // Refresh the task list when returning to MainActivity
+        refreshTaskList();
     }
 
     private void refreshTaskList() {
-        // Fetch the updated task list from the database
-        List<TaskModel> updatedTaskList = myDB.getAllTasks();
-        // Notify your RecyclerView adapter to update the UI
-        adapter.updateTaskList(updatedTaskList);
+        // Fetch updated tasks from the database and update the adapter
+        tasksList = myDB.getAllTasks();
+        Collections.reverse(tasksList);  // Reverse the list if needed
+        adapter.updateTaskList(tasksList);  // Notify the adapter of data changes
     }
+
+
+
 
 
 }

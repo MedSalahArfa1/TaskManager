@@ -84,7 +84,6 @@ public class TaskDetailsActivity extends AppCompatActivity {
         // Update the complete button appearance
         updateCompleteButton();
 
-        updateTaskDetails();
     }
 
     private void toggleTaskCompletion() {
@@ -102,11 +101,9 @@ public class TaskDetailsActivity extends AppCompatActivity {
     private void updateCompleteButton() {
         if (currentTask.getStatut() == 1) {
             completeButton.setText("Marquer comme Incomplète");
-            myDB.updateStatut(currentTask.getId(), 0);
 
         } else {
             completeButton.setText("Marquer comme Complète");
-            myDB.updateStatut(currentTask.getId(), 1);
         }
     }
 
@@ -117,6 +114,9 @@ public class TaskDetailsActivity extends AppCompatActivity {
             TimePickerDialog timePickerDialog = new TimePickerDialog(this, (timeView, hourOfDay, minute) -> {
                 calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
                 calendar.set(Calendar.MINUTE, minute);
+
+                // Open the clock app to set the alarm
+                openClockApp(calendar);
 
                 scheduleNotification(calendar.getTimeInMillis(), currentTask.getId(), currentTask.getTitre());
 
@@ -145,6 +145,15 @@ public class TaskDetailsActivity extends AppCompatActivity {
         }
     }
 
+    private void openClockApp(Calendar calendar) {
+        Intent intent = new Intent(Intent.ACTION_EDIT);
+        intent.setType("vnd.android.cursor.item/event");
+        intent.putExtra("beginTime", calendar.getTimeInMillis());
+        intent.putExtra("allDay", false);
+        startActivity(intent);
+    }
+
+
     private void shareTask() {
         String shareMessage = "Task: " + currentTask.getTitre() + "\n" +
                 "Description: " + currentTask.getDescription() + "\n" +
@@ -171,11 +180,12 @@ public class TaskDetailsActivity extends AppCompatActivity {
         // Set a listener on the fragment to handle task updates after editing
         addNewTaskFragment.setOnTaskUpdatedListener(() -> {
             // After the task is updated in the fragment, refresh task details
-            loadTaskDetails();
+            loadTaskDetails(); // This should be called to refresh the task info
         });
 
         addNewTaskFragment.show(getSupportFragmentManager(), addNewTaskFragment.getTag());
     }
+
 
     private void updateTaskDetails() {
         // Refresh the task details after editing to show the updated task
@@ -204,4 +214,5 @@ public class TaskDetailsActivity extends AppCompatActivity {
         setResult(RESULT_OK, resultIntent);
         finish();
     }
+
 }

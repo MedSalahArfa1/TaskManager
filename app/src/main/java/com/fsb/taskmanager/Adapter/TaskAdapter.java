@@ -102,8 +102,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.MyViewHolder> 
             intent.putExtra("description", item.getDescription());
             intent.putExtra("date_echeance", item.getDate_echeance().getTime());
             intent.putExtra("rappel", item.getRappel());
-            activity.startActivity(intent);
-            ((Activity) holder.itemView.getContext()).startActivityForResult(intent, 1);
+            activity.startActivityForResult(intent, 1);  // Start Activity for result
         });
 
         // Share Button Click
