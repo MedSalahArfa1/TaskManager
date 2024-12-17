@@ -1,6 +1,7 @@
 package com.fsb.taskmanager;
 
 import android.app.AlarmManager;
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.PendingIntent;
 import android.app.TimePickerDialog;
@@ -18,7 +19,6 @@ import com.fsb.taskmanager.Utils.DataBaseHelper;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 
 public class TaskDetailsActivity extends AppCompatActivity {
 
@@ -29,6 +29,7 @@ public class TaskDetailsActivity extends AppCompatActivity {
     private Button deleteButton;
     private DataBaseHelper myDB;
     private TextView titleTextView, descriptionTextView, deadlineTextView, reminderTextView;
+    private TaskModel currentTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,109 +45,98 @@ public class TaskDetailsActivity extends AppCompatActivity {
         deadlineTextView = findViewById(R.id.deadlineTextView);
         reminderTextView = findViewById(R.id.reminderTextView);
 
+        completeButton = findViewById(R.id.completeButton);
+        setReminderButton = findViewById(R.id.setReminderButton);
+        shareButton = findViewById(R.id.shareButton);
+        editButton = findViewById(R.id.editButton);
+        deleteButton = findViewById(R.id.deleteButton);
+
         // Load task details
         loadTaskDetails();
 
-        // Initialize the complete button
-        completeButton = findViewById(R.id.completeButton);
-        // Set the complete button action
-        completeButton.setOnClickListener(v -> {
-            markTaskAsComplete();
-        });
-
-        // Initialize the set reminder button
-        setReminderButton = findViewById(R.id.setReminderButton);
-        // Set reminder button action
-        setReminderButton.setOnClickListener(v -> {
-            setReminder();
-        });
-
-        // Initialize share button
-        shareButton = findViewById(R.id.shareButton);
-        // Set share button action
-        shareButton.setOnClickListener(v -> {
-            shareTask();
-        });
-
-        // Initialize the edit button
-        editButton = findViewById(R.id.editButton);
-        // Set edit button action
-        editButton.setOnClickListener(v -> {
-            editTask();
-        });
-
-        // Initialize delete button
-        deleteButton = findViewById(R.id.deleteButton);
-        // Set delete button action
-        deleteButton.setOnClickListener(v -> {
-            deleteTask();
-        });
-
+        completeButton.setOnClickListener(v -> toggleTaskCompletion());
+        setReminderButton.setOnClickListener(v -> setReminder());
+        shareButton.setOnClickListener(v -> shareTask());
+        editButton.setOnClickListener(v -> editTask());
+        deleteButton.setOnClickListener(v -> showDeleteConfirmationDialog());
     }
 
     private void loadTaskDetails() {
-        // Retrieve task ID from the intent
         int taskId = getIntent().getIntExtra("taskId", -1);
         if (taskId == -1) {
             Toast.makeText(this, "Invalid task ID", Toast.LENGTH_SHORT).show();
-            finish(); // Close the activity if no valid ID is provided
+            finish();
             return;
         }
 
-        // Fetch the task from the database
-        TaskModel task = myDB.getTaskById(taskId);
-        if (task == null) {
+        currentTask = myDB.getTaskById(taskId);
+        if (currentTask == null) {
             Toast.makeText(this, "Task not found", Toast.LENGTH_SHORT).show();
-            finish(); // Close the activity if the task doesn't exist
+            finish();
             return;
         }
 
-        // Update UI with task details
-        titleTextView.setText(task.getTitre());
-        descriptionTextView.setText(task.getDescription());
-        deadlineTextView.setText("Date d’échéance: " + new SimpleDateFormat("dd-MM-yyyy").format(task.getDate_echeance()));
-        reminderTextView.setText("Nombre de Rappels: " + task.getRappel());
+        titleTextView.setText(currentTask.getTitre());
+        descriptionTextView.setText(currentTask.getDescription());
+        deadlineTextView.setText("Date d’échéance: " + new SimpleDateFormat("dd-MM-yyyy").format(currentTask.getDate_echeance()));
+        reminderTextView.setText("Nombre de Rappels: " + currentTask.getRappel());
+
+        // Update the complete button appearance
+        updateCompleteButton();
+
+        updateTaskDetails();
     }
 
-    private void markTaskAsComplete() {
-        int taskId = getIntent().getIntExtra("taskId", -1);
-        if (taskId != 0) {
-            myDB.updateStatut(taskId, 1); // Mark as completed (status 1)
-            Toast.makeText(this, "Task marked as complete", Toast.LENGTH_SHORT).show();
+    private void toggleTaskCompletion() {
+        int newStatus = (currentTask.getStatut() == 0) ? 1 : 0;
+        myDB.updateStatut(currentTask.getId(), newStatus);
+        currentTask.setStatut(newStatus);
+
+        String message = (newStatus == 1) ? "Tâche marquée comme Complète" : "Tâche marquée comme Incomplète";
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+
+        // Update the button appearance
+        updateCompleteButton();
+    }
+
+    private void updateCompleteButton() {
+        if (currentTask.getStatut() == 1) {
+            completeButton.setText("Marquer comme Incomplète");
+            myDB.updateStatut(currentTask.getId(), 0);
+
+        } else {
+            completeButton.setText("Marquer comme Complète");
+            myDB.updateStatut(currentTask.getId(), 1);
         }
-        else{
-            Toast.makeText(this, "Task already done", Toast.LENGTH_SHORT).show();
-        }
-        // Load task details
-        loadTaskDetails();
     }
 
     private void setReminder() {
-        int taskId = getIntent().getIntExtra("taskId", -1);
-        if (taskId != -1) {
-            // Open a date and time picker to set the reminder (use your existing reminder logic)
-            Calendar calendar = Calendar.getInstance();
-            DatePickerDialog datePickerDialog = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
-                calendar.set(year, month, dayOfMonth);
-                TimePickerDialog timePickerDialog = new TimePickerDialog(this, (timeView, hourOfDay, minute) -> {
-                    calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
-                    calendar.set(Calendar.MINUTE, minute);
+        Calendar calendar = Calendar.getInstance();
+        DatePickerDialog datePickerDialog = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
+            calendar.set(year, month, dayOfMonth);
+            TimePickerDialog timePickerDialog = new TimePickerDialog(this, (timeView, hourOfDay, minute) -> {
+                calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                calendar.set(Calendar.MINUTE, minute);
 
-                    // Schedule the reminder notification
-                    scheduleNotification(calendar.getTimeInMillis(), taskId);
+                scheduleNotification(calendar.getTimeInMillis(), currentTask.getId(), currentTask.getTitre());
 
-                }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true);
-                timePickerDialog.show();
-            }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
-            datePickerDialog.show();
-        }
-        // Load task details
-        loadTaskDetails();
+                // Increment the reminder count
+                myDB.updateRappel(currentTask.getId(),currentTask.getRappel()+1);
+                currentTask.setRappel(currentTask.getRappel() + 1);
+
+                loadTaskDetails(); // Refresh details to update "Nombre de Rappels"
+                Toast.makeText(this, "Reminder set successfully", Toast.LENGTH_SHORT).show();
+
+            }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true);
+            timePickerDialog.show();
+        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
+        datePickerDialog.show();
     }
 
-    private void scheduleNotification(long triggerTime, int taskId) {
+    private void scheduleNotification(long triggerTime, int taskId, String taskTitle) {
         Intent intent = new Intent(this, NotificationReceiver.class);
         intent.putExtra("taskId", taskId);
+        intent.putExtra("taskTitle", taskTitle);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(this, taskId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
@@ -156,58 +146,62 @@ public class TaskDetailsActivity extends AppCompatActivity {
     }
 
     private void shareTask() {
-        int taskId = getIntent().getIntExtra("taskId", -1);
-        if (taskId != -1) {
-            TaskModel task = myDB.getTaskById(taskId);
-            if (task != null) {
-                String shareMessage = "Task: " + task.getTitre() + "\n" +
-                        "Description: " + task.getDescription() + "\n" +
-                        "Deadline: " + new SimpleDateFormat("dd-MM-yyyy").format(task.getDate_echeance());
+        String shareMessage = "Task: " + currentTask.getTitre() + "\n" +
+                "Description: " + currentTask.getDescription() + "\n" +
+                "Deadline: " + new SimpleDateFormat("dd-MM-yyyy").format(currentTask.getDate_echeance());
 
-                Intent shareIntent = new Intent(Intent.ACTION_SEND);
-                shareIntent.setType("text/plain");
-                shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Task Details");
-                shareIntent.putExtra(Intent.EXTRA_TEXT, shareMessage);
-                startActivity(Intent.createChooser(shareIntent, "Share Task"));
-            }
-        }
-        // Load task details
-        loadTaskDetails();
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Task Details");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, shareMessage);
+        startActivity(Intent.createChooser(shareIntent, "Share Task"));
     }
 
     private void editTask() {
-        int taskId = getIntent().getIntExtra("taskId", -1);
-        if (taskId != -1) {
-            TaskModel task = myDB.getTaskById(taskId);
-            if (task != null) {
-                // Pass the task details to the AddNewTask fragment
-                Bundle bundle = new Bundle();
-                bundle.putInt("id", task.getId());
-                bundle.putString("titre", task.getTitre());
-                bundle.putString("description", task.getDescription());
-                bundle.putLong("date_echeance", task.getDate_echeance().getTime());
-                bundle.putInt("rappel", task.getRappel());
+        Bundle bundle = new Bundle();
+        bundle.putInt("id", currentTask.getId());
+        bundle.putString("titre", currentTask.getTitre());
+        bundle.putString("description", currentTask.getDescription());
+        bundle.putLong("date_echeance", currentTask.getDate_echeance().getTime());
+        bundle.putInt("rappel", currentTask.getRappel());
 
-                AddNewTask addNewTaskFragment = new AddNewTask();
-                addNewTaskFragment.setArguments(bundle);
-                addNewTaskFragment.show(getSupportFragmentManager(), addNewTaskFragment.getTag());
-            }
+        AddNewTask addNewTaskFragment = new AddNewTask();
+        addNewTaskFragment.setArguments(bundle);
+
+        // Set a listener on the fragment to handle task updates after editing
+        addNewTaskFragment.setOnTaskUpdatedListener(() -> {
+            // After the task is updated in the fragment, refresh task details
+            loadTaskDetails();
+        });
+
+        addNewTaskFragment.show(getSupportFragmentManager(), addNewTaskFragment.getTag());
+    }
+
+    private void updateTaskDetails() {
+        // Refresh the task details after editing to show the updated task
+        currentTask = myDB.getTaskById(currentTask.getId());  // Reload the task from the database
+        if (currentTask != null) {
+            titleTextView.setText(currentTask.getTitre());
+            descriptionTextView.setText(currentTask.getDescription());
+            deadlineTextView.setText("Date d’échéance: " + new SimpleDateFormat("dd-MM-yyyy").format(currentTask.getDate_echeance()));
         }
-        // Load task details
-        loadTaskDetails();
+    }
+
+    private void showDeleteConfirmationDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Supprimer la tâche")
+                .setMessage("Êtes-vous sûr ?")
+                .setPositiveButton("Oui", (dialog, which) -> deleteTask())
+                .setNegativeButton("Annuler", null)
+                .show();
     }
 
     private void deleteTask() {
-        int taskId = getIntent().getIntExtra("taskId", -1);
-        if (taskId != -1) {
-            myDB.deleteTask(taskId);
-            Toast.makeText(this, "Task deleted", Toast.LENGTH_SHORT).show();
-            finish(); // Close the activity
-        }
-        // Load task details
-        loadTaskDetails();
+        myDB.deleteTask(currentTask.getId());
+        Toast.makeText(this, "Tâche supprimée", Toast.LENGTH_SHORT).show();
+        // Send a result back to MainActivity to indicate the task has been deleted
+        Intent resultIntent = new Intent();
+        setResult(RESULT_OK, resultIntent);
+        finish();
     }
-
-
-
 }

@@ -1,6 +1,7 @@
 package com.fsb.taskmanager;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -88,4 +89,22 @@ public class MainActivity extends AppCompatActivity implements OnDialogCloseList
         adapter.setTasks(tasksList);
         adapter.notifyDataSetChanged();
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1 && resultCode == RESULT_OK) {
+            // Task was deleted, refresh the RecyclerView to remove it
+            refreshTaskList();
+        }
+    }
+
+    private void refreshTaskList() {
+        // Fetch the updated task list from the database
+        List<TaskModel> updatedTaskList = myDB.getAllTasks();
+        // Notify your RecyclerView adapter to update the UI
+        adapter.updateTaskList(updatedTaskList);
+    }
+
+
 }

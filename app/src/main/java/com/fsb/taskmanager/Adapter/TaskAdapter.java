@@ -1,5 +1,6 @@
 package com.fsb.taskmanager.Adapter;
 
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.DatePickerDialog;
 import android.app.PendingIntent;
@@ -102,6 +103,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.MyViewHolder> 
             intent.putExtra("date_echeance", item.getDate_echeance().getTime());
             intent.putExtra("rappel", item.getRappel());
             activity.startActivity(intent);
+            ((Activity) holder.itemView.getContext()).startActivityForResult(intent, 1);
         });
 
         // Share Button Click
@@ -134,7 +136,9 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.MyViewHolder> 
             }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
             datePickerDialog.show();
 
-            myDB.updateRappel(item.getId(), item.getRappel()+1);
+            // Increment the reminder count
+            myDB.updateRappel(item.getId(),item.getRappel()+1);
+            item.setRappel(item.getRappel() + 1);
             notifyDataSetChanged(); // Notifie l'adaptateur pour les modifications
         });
 
@@ -207,6 +211,12 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.MyViewHolder> 
             alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent);
         }
     }
+
+    public void updateTaskList(List<TaskModel> updatedTaskList) {
+        this.tasksList = updatedTaskList;
+        notifyDataSetChanged(); // Notify the adapter that the data has changed
+    }
+
 
 
 }

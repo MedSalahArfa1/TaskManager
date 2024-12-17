@@ -3,6 +3,7 @@ package com.fsb.taskmanager;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
@@ -41,6 +42,23 @@ public class AddNewTask extends BottomSheetDialogFragment {
     //Open Dialog
     public static AddNewTask newInstance() {
         return new AddNewTask();
+    }
+
+    private OnTaskUpdatedListener taskUpdatedListener;
+
+    public interface OnTaskUpdatedListener {
+        void onTaskUpdated();
+    }
+
+    public void setOnTaskUpdatedListener(OnTaskUpdatedListener listener) {
+        this.taskUpdatedListener = listener;
+    }
+
+    // Call this method when the task is successfully updated
+    private void onTaskUpdated() {
+        if (taskUpdatedListener != null) {
+            taskUpdatedListener.onTaskUpdated();
+        }
     }
 
     @Nullable
@@ -173,4 +191,5 @@ public class AddNewTask extends BottomSheetDialogFragment {
             ((OnDialogCloseListener) activity).onDialogClose(dialog);
         }
     }
+
 }
