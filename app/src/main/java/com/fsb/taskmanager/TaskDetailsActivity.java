@@ -1,5 +1,6 @@
 package com.fsb.taskmanager;
 
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
@@ -59,6 +60,7 @@ public class TaskDetailsActivity extends AppCompatActivity {
         shareButton.setOnClickListener(v -> shareTask());
         editButton.setOnClickListener(v -> editTask());
         deleteButton.setOnClickListener(v -> showDeleteConfirmationDialog());
+
     }
 
     private void loadTaskDetails() {
@@ -88,14 +90,25 @@ public class TaskDetailsActivity extends AppCompatActivity {
 
     private void toggleTaskCompletion() {
         int newStatus = (currentTask.getStatut() == 0) ? 1 : 0;
+
+        // Update status in the database
         myDB.updateStatut(currentTask.getId(), newStatus);
+
+        // Update the current task object
         currentTask.setStatut(newStatus);
 
+        // Prepare the result intent
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra("taskId", currentTask.getId());
+        resultIntent.putExtra("taskStatus", newStatus);
+        setResult(Activity.RESULT_OK, resultIntent);
+
+        // Reload task details to reflect changes
+        loadTaskDetails();
+
+        // Show a toast message for user feedback
         String message = (newStatus == 1) ? "Tâche marquée comme Complète" : "Tâche marquée comme Incomplète";
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-
-        // Update the button appearance
-        updateCompleteButton();
     }
 
     private void updateCompleteButton() {
@@ -125,7 +138,7 @@ public class TaskDetailsActivity extends AppCompatActivity {
                 currentTask.setRappel(currentTask.getRappel() + 1);
 
                 loadTaskDetails(); // Refresh details to update "Nombre de Rappels"
-                Toast.makeText(this, "Reminder set successfully", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Rappel défini avec succès", Toast.LENGTH_SHORT).show();
 
             }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true);
             timePickerDialog.show();
@@ -155,15 +168,15 @@ public class TaskDetailsActivity extends AppCompatActivity {
 
 
     private void shareTask() {
-        String shareMessage = "Task: " + currentTask.getTitre() + "\n" +
+        String shareMessage = "Tâche: " + currentTask.getTitre() + "\n" +
                 "Description: " + currentTask.getDescription() + "\n" +
-                "Deadline: " + new SimpleDateFormat("dd-MM-yyyy").format(currentTask.getDate_echeance());
+                "Date d'échéance: " + new SimpleDateFormat("dd-MM-yyyy").format(currentTask.getDate_echeance());
 
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.setType("text/plain");
-        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Task Details");
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Détails de la tâche:\n");
         shareIntent.putExtra(Intent.EXTRA_TEXT, shareMessage);
-        startActivity(Intent.createChooser(shareIntent, "Share Task"));
+        startActivity(Intent.createChooser(shareIntent, "Partagez cette tâche via"));
     }
 
     private void editTask() {
@@ -187,15 +200,7 @@ public class TaskDetailsActivity extends AppCompatActivity {
     }
 
 
-    private void updateTaskDetails() {
-        // Refresh the task details after editing to show the updated task
-        currentTask = myDB.getTaskById(currentTask.getId());  // Reload the task from the database
-        if (currentTask != null) {
-            titleTextView.setText(currentTask.getTitre());
-            descriptionTextView.setText(currentTask.getDescription());
-            deadlineTextView.setText("Date d’échéance: " + new SimpleDateFormat("dd-MM-yyyy").format(currentTask.getDate_echeance()));
-        }
-    }
+
 
     private void showDeleteConfirmationDialog() {
         new AlertDialog.Builder(this)

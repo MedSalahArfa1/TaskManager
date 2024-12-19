@@ -1,6 +1,5 @@
 package com.fsb.taskmanager.Adapter;
 
-import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.DatePickerDialog;
 import android.app.PendingIntent;
@@ -37,7 +36,6 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.MyViewHolder> 
     private List<TaskModel> tasksList;
     private MainActivity activity;
     private DataBaseHelper myDB;
-    private List<TaskModel> tasksListFull; // Backup list for tasks
 
 
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
@@ -46,8 +44,12 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.MyViewHolder> 
         this.activity = activity;
         this.myDB = myDB;
         this.tasksList = new ArrayList<>();
-        this.tasksListFull = new ArrayList<>();
     }
+
+    public List<TaskModel> getTasksList() {
+        return tasksList;
+    }
+
 
     //Inner class that holds references to the views for each item
     public static class MyViewHolder extends RecyclerView.ViewHolder {
@@ -113,7 +115,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.MyViewHolder> 
             shareIntent.putExtra(Intent.EXTRA_TEXT, "Détails de la tâche:\n" +
                     "Titre: " + item.getTitre() + "\n" +
                     "Description: " + item.getDescription() + "\n" +
-                    "Deadline: " + dateFormat.format(item.getDate_echeance()));
+                    "Date d'échéance: " + dateFormat.format(item.getDate_echeance()));
             activity.startActivity(Intent.createChooser(shareIntent, "Partagez cette tâche via"));
         });
 
@@ -151,12 +153,6 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.MyViewHolder> 
         return activity;
     }
 
-    public void setTasks(List<TaskModel> mList) {
-        this.tasksList = mList;
-        this.tasksListFull = new ArrayList<>(mList); // Copy the list for backup
-        notifyDataSetChanged();
-    }
-
     public void deleteTask(int position) {
         TaskModel item = tasksList.get(position);
         myDB.deleteTask(item.getId());
@@ -182,21 +178,6 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.MyViewHolder> 
     @Override
     public int getItemCount() {
         return tasksList.size();
-    }
-
-    public void filter(String query) {
-        if (query == null || query.isEmpty()) {
-            tasksList = new ArrayList<>(tasksListFull); // Reset to original list
-        } else {
-            List<TaskModel> filteredList = new ArrayList<>();
-            for (TaskModel task : tasksListFull) {
-                if (task.getTitre().toLowerCase().contains(query.toLowerCase())) {
-                    filteredList.add(task);
-                }
-            }
-            tasksList = filteredList;
-        }
-        notifyDataSetChanged();
     }
 
     // Method to schedule a notification (example implementation)
